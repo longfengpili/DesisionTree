@@ -1,0 +1,168 @@
+2018-10-29 20:28:21,695 - redshift - ERROR - redshift.py - 64 - column "#y1wsych5" does not exist in user_info_before7_after7
+
+2018-10-29 20:28:21,704 - redshift - INFO - redshift.py - 65 - 
+                update report_word.user_info_before7_after7
+                set retention_predict = 1
+                where user_id = #y1wSych5 and app_name = word_production
+                and platform = googleplay and puzzle_language =En
+            
+2018-10-29 20:28:24,542 - redshift - ERROR - redshift.py - 64 - syntax error at or near "*"
+LINE 4:                 where user_id = *BkC8pj#D and app_name = wor...
+                                        ^
+
+2018-10-29 20:28:24,543 - redshift - INFO - redshift.py - 65 - 
+                update report_word.user_info_before7_after7
+                set retention_predict = 1
+                where user_id = *BkC8pj#D and app_name = word_production
+                and platform = googleplay and puzzle_language =En
+            
+2018-10-29 20:28:27,389 - redshift - ERROR - redshift.py - 64 - syntax error at or near "ABbAFnok"
+LINE 4:                 where user_id = 0ABbAFnok and app_name = wor...
+                                         ^
+
+2018-10-29 20:28:27,390 - redshift - INFO - redshift.py - 65 - 
+                update report_word.user_info_before7_after7
+                set retention_predict = 1
+                where user_id = 0ABbAFnok and app_name = word_production
+                and platform = googleplay and puzzle_language =En
+            
+2018-10-29 20:28:30,249 - redshift - ERROR - redshift.py - 64 - syntax error at or near "hdVPS1Uy"
+LINE 4:                 where user_id = 0hdVPS1Uy and app_name = wor...
+                                         ^
+
+2018-10-29 20:28:30,250 - redshift - INFO - redshift.py - 65 - 
+                update report_word.user_info_before7_after7
+                set retention_predict = 1
+                where user_id = 0hdVPS1Uy and app_name = word_production
+                and platform = googleplay and puzzle_language =En
+            
+2018-10-29 20:28:33,043 - redshift - ERROR - redshift.py - 64 - syntax error at or near "RfgzfhLB"
+LINE 4:                 where user_id = 3RfgzfhLB and app_name = wor...
+                                         ^
+
+2018-10-29 20:28:33,044 - redshift - INFO - redshift.py - 65 - 
+                update report_word.user_info_before7_after7
+                set retention_predict = 1
+                where user_id = 3RfgzfhLB and app_name = word_production
+                and platform = googleplay and puzzle_language =En
+            
+2018-10-29 20:28:35,842 - redshift - ERROR - redshift.py - 64 - syntax error at or near "y3EAV1iI"
+LINE 4:                 where user_id = 4y3EAV1iI and app_name = wor...
+                                         ^
+
+2018-10-29 20:28:35,843 - redshift - INFO - redshift.py - 65 - 
+                update report_word.user_info_before7_after7
+                set retention_predict = 1
+                where user_id = 4y3EAV1iI and app_name = word_production
+                and platform = googleplay and puzzle_language =En
+            
+2018-10-29 20:28:38,675 - redshift - ERROR - redshift.py - 64 - syntax error at or near "Ku"
+LINE 4:                 where user_id = 6Ku-XsJx8 and app_name = wor...
+                                         ^
+
+2018-10-29 20:28:38,676 - redshift - INFO - redshift.py - 65 - 
+                update report_word.user_info_before7_after7
+                set retention_predict = 1
+                where user_id = 6Ku-XsJx8 and app_name = word_production
+                and platform = googleplay and puzzle_language =En
+            
+2018-10-29 20:28:41,437 - redshift - ERROR - redshift.py - 64 - syntax error at or near "J2N5YZme"
+LINE 4:                 where user_id = 8J2N5YZme and app_name = wor...
+                                         ^
+
+2018-10-29 20:28:41,438 - redshift - INFO - redshift.py - 65 - 
+                update report_word.user_info_before7_after7
+                set retention_predict = 1
+                where user_id = 8J2N5YZme and app_name = word_production
+                and platform = googleplay and puzzle_language =En
+            
+2018-10-29 20:28:44,146 - redshift - ERROR - redshift.py - 64 - syntax error at or near "IvNqi#1R"
+LINE 4:                 where user_id = 9IvNqi#1R and app_name = wor...
+                                         ^
+
+2018-10-29 20:28:44,148 - redshift - INFO - redshift.py - 65 - 
+                update report_word.user_info_before7_after7
+                set retention_predict = 1
+                where user_id = 9IvNqi#1R and app_name = word_production
+                and platform = googleplay and puzzle_language =En
+            
+2018-10-29 20:28:46,911 - redshift - ERROR - redshift.py - 64 - syntax error at or near "_D#JE"
+LINE 4:                 where user_id = 9_D#JE*_I and app_name = wor...
+                                         ^
+
+2018-10-29 20:28:46,912 - redshift - INFO - redshift.py - 65 - 
+                update report_word.user_info_before7_after7
+                set retention_predict = 1
+                where user_id = 9_D#JE*_I and app_name = word_production
+                and platform = googleplay and puzzle_language =En
+            
+2018-10-29 20:31:49,053 - redshift - ERROR - redshift.py - 64 - no results to fetch
+2018-10-29 20:31:49,053 - redshift - INFO - redshift.py - 65 - 
+                update report_word.user_info_before7_after7
+                set retention_predict = '1'
+                where user_id = '#y1wSych5' and app_name = 'word_production'
+                and platform = 'googleplay' and puzzle_language ='En'
+            
+2018-10-29 20:31:54,706 - redshift - ERROR - redshift.py - 64 - no results to fetch
+2018-10-29 20:31:54,706 - redshift - INFO - redshift.py - 65 - 
+                update report_word.user_info_before7_after7
+                set retention_predict = '1'
+                where user_id = '*BkC8pj#D' and app_name = 'word_production'
+                and platform = 'googleplay' and puzzle_language ='En'
+            
+2018-10-29 20:31:57,670 - redshift - ERROR - redshift.py - 64 - no results to fetch
+2018-10-29 20:31:57,671 - redshift - INFO - redshift.py - 65 - 
+                update report_word.user_info_before7_after7
+                set retention_predict = '1'
+                where user_id = '0ABbAFnok' and app_name = 'word_production'
+                and platform = 'googleplay' and puzzle_language ='En'
+            
+2018-10-29 20:32:00,630 - redshift - ERROR - redshift.py - 64 - no results to fetch
+2018-10-29 20:32:00,631 - redshift - INFO - redshift.py - 65 - 
+                update report_word.user_info_before7_after7
+                set retention_predict = '1'
+                where user_id = '0hdVPS1Uy' and app_name = 'word_production'
+                and platform = 'googleplay' and puzzle_language ='En'
+            
+2018-10-29 20:32:03,592 - redshift - ERROR - redshift.py - 64 - no results to fetch
+2018-10-29 20:32:03,592 - redshift - INFO - redshift.py - 65 - 
+                update report_word.user_info_before7_after7
+                set retention_predict = '1'
+                where user_id = '3RfgzfhLB' and app_name = 'word_production'
+                and platform = 'googleplay' and puzzle_language ='En'
+            
+2018-10-29 20:32:06,441 - redshift - ERROR - redshift.py - 64 - no results to fetch
+2018-10-29 20:32:06,441 - redshift - INFO - redshift.py - 65 - 
+                update report_word.user_info_before7_after7
+                set retention_predict = '1'
+                where user_id = '4y3EAV1iI' and app_name = 'word_production'
+                and platform = 'googleplay' and puzzle_language ='En'
+            
+2018-10-29 20:32:09,311 - redshift - ERROR - redshift.py - 64 - no results to fetch
+2018-10-29 20:32:09,311 - redshift - INFO - redshift.py - 65 - 
+                update report_word.user_info_before7_after7
+                set retention_predict = '1'
+                where user_id = '6Ku-XsJx8' and app_name = 'word_production'
+                and platform = 'googleplay' and puzzle_language ='En'
+            
+2018-10-29 20:32:12,874 - redshift - ERROR - redshift.py - 64 - no results to fetch
+2018-10-29 20:32:12,875 - redshift - INFO - redshift.py - 65 - 
+                update report_word.user_info_before7_after7
+                set retention_predict = '1'
+                where user_id = '8J2N5YZme' and app_name = 'word_production'
+                and platform = 'googleplay' and puzzle_language ='En'
+            
+2018-10-29 20:32:15,901 - redshift - ERROR - redshift.py - 64 - no results to fetch
+2018-10-29 20:32:15,901 - redshift - INFO - redshift.py - 65 - 
+                update report_word.user_info_before7_after7
+                set retention_predict = '1'
+                where user_id = '9IvNqi#1R' and app_name = 'word_production'
+                and platform = 'googleplay' and puzzle_language ='En'
+            
+2018-10-29 20:32:19,084 - redshift - ERROR - redshift.py - 64 - no results to fetch
+2018-10-29 20:32:19,084 - redshift - INFO - redshift.py - 65 - 
+                update report_word.user_info_before7_after7
+                set retention_predict = '1'
+                where user_id = '9_D#JE*_I' and app_name = 'word_production'
+                and platform = 'googleplay' and puzzle_language ='En'
+            

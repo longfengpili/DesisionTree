@@ -6,15 +6,12 @@ from datetime import date,timedelta,datetime
 import re
 import sys
 
-sys.path.append('..')
-import Tree_setting as tsetting
-
 import pandas as pd
 from pandas import DataFrame
 
 import logging
 from logging import config
-from DesisionTree import *
+from setting import *
 
 config.fileConfig('treelog.conf')
 redshift_log = logging.getLogger('redshift')
@@ -47,7 +44,7 @@ class db_redshift():
         # redshift_log.info(sql)
         return sql
 
-    def redshift_execute(self,sql,**kw):
+    def redshift_select(self,sql,**kw):
         change_sql = self.change_sql(sql,**kw)
         rows = 0
         result = None
@@ -70,6 +67,26 @@ class db_redshift():
         conn.close()
 
         return rows,result
+
+    
+    def redshift_insert(self,sql,**kw):
+        change_sql = self.change_sql(sql,**kw)
+        rows = 0
+
+        conn = self.__redshift_connect()
+        cur = conn.cursor()
+        try:
+            cur.execute(change_sql)
+            rows = cur.rowcount
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            redshift_log.error(e)
+            redshift_log.info(change_sql)
+            result = e
+        conn.close()
+
+        return rows
 
 if __name__ == '__main__':
     redshift = db_redshift()

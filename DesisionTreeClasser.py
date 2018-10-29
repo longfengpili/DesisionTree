@@ -13,7 +13,7 @@ import pandas as pd
 from pandas import Series,DataFrame
 import logging
 from logging import config
-from DesisionTree import *
+from setting import *
 
 config.fileConfig('treelog.conf')
 tree_log = logging.getLogger('tree')
@@ -86,9 +86,13 @@ class DecisionTreeClasser():
         pickle.dump(dtc_t,open(file,'wb'))
         
     def load_recent_model(self):
-        model_list = [i for i in os.listdir(self.dir) if '.model' in i]
-        recent_model = self.dir + '/' +  model_list[-1]
-        recent_model = pickle.load(open(recent_model,'rb'))
+        try:
+            model_list = [i for i in os.listdir(self.dir) if '.model' in i]
+            recent_model = self.dir + '/' +  model_list[-1]
+            recent_model = pickle.load(open(recent_model,'rb'))
+        except:
+            tree_log.info('no model exists !')
+            recent_model = None
         return recent_model
         
 
@@ -97,7 +101,7 @@ if __name__ == '__main__':
     iris = load_iris()
     x = iris.data[:, :2]  # we only take the first two features.
     y = iris.target
-    tree = DecisionTree()
+    tree = DecisionTreeClasser()
 
     x_train,x_test,y_train,y_test = tree.split_data(x,y)
 
