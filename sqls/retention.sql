@@ -16,6 +16,15 @@ and install_date = $date and bias = 'true'
 
 --select * from temp_new_users order by install_Date limit 10;
 
+--提取play_level
+create temp table temp_play_level as
+select *
+from raw_data_word.play_levels
+where trunc(ts) >= $date
+and app_name = $app_name
+and platform in ('googleplay','ios')
+;
+
 --用户关卡数据_7天
 create temp table temp_play_level_0 as
 select a.user_id,a.app_name,a.platform,left(a.puzzle_language,2) puzzle_language,
@@ -23,7 +32,7 @@ a.ts,a.level,null as challenge_date,
 a.coin_after,null as name,
 b.install_date,b.first_nation,b.first_iap_date,
 'play_level' as type
-from raw_data_word.play_levels a
+from temp_play_level a
 left join temp_new_users b
 on a.user_id = b.user_id and a.app_name = b.app_name and a.platform = b.platform
 and left(a.puzzle_language,2) = b.puzzle_language
@@ -38,7 +47,7 @@ create temp table temp_play_level_1 as
 select distinct a.user_id,a.app_name,a.platform,left(a.puzzle_language,2) puzzle_language,
 'true' as retention_status,
 min(ts) as retention_ts
-from raw_data_word.play_levels a
+from temp_play_level a
 left join temp_new_users b
 on a.user_id = b.user_id and a.app_name = b.app_name and a.platform = b.platform
 and left(a.puzzle_language,2) = b.puzzle_language
@@ -49,6 +58,15 @@ and a.puzzle_language = $puzzle_language
 group by 1,2,3,4,5
 ;
 
+--提取challenge_play_level
+create temp table temp_challenge_play_level as
+select *
+from raw_data_word.challenge_play_levels
+where trunc(ts) >= $date
+and app_name = $app_name
+and platform in ('googleplay','ios')
+;
+
 
 --用户challenge关卡数据_7天
 create temp table temp_challenge_play_level_0 as
@@ -57,7 +75,7 @@ a.ts,(case when a.level is not null then a.level else a.challenge_level end) as 
 null::integer as coin_after,null as name,
 b.install_date,b.first_nation,b.first_iap_date,
 'challege_play_level' as type
-from raw_data_word.challenge_play_levels a
+from temp_challenge_play_level a
 left join temp_new_users b
 on a.user_id = b.user_id and a.app_name = b.app_name and a.platform = b.platform
 and left(a.puzzle_language,2) = b.puzzle_language
@@ -72,7 +90,7 @@ create temp table temp_challenge_play_level_1 as
 select distinct a.user_id,a.app_name,a.platform,left(a.puzzle_language,2) puzzle_language,
 'true' as retention_status,
 min(ts) as retention_ts
-from raw_data_word.challenge_play_levels a
+from temp_challenge_play_level a
 left join temp_new_users b
 on a.user_id = b.user_id and a.app_name = b.app_name and a.platform = b.platform
 and left(a.puzzle_language,2) = b.puzzle_language
@@ -83,6 +101,16 @@ and a.puzzle_language = $puzzle_language
 group by 1,2,3,4,5
 ;
 
+
+--提取coin_gain
+create temp table temp_coin_gain as
+select *
+from raw_data_word.coin_gains
+where trunc(ts) >= $date
+and app_name = $app_name
+and platform in ('googleplay','ios')
+;
+
 --用户coin_gain数据_7天
 create temp table temp_coin_gain_0 as
 select a.user_id,a.app_name,a.platform,left(a.puzzle_language,2) puzzle_language,
@@ -90,7 +118,7 @@ a.ts,a.level,null as challenge_date,
 a.coin_before + coin_award as coin_after,null as name,
 b.install_date,b.first_nation,b.first_iap_date,
 'coin_gain' as type
-from raw_data_word.coin_gains a
+from temp_coin_gain a
 left join temp_new_users b
 on a.user_id = b.user_id and a.app_name = b.app_name and a.platform = b.platform
 and left(a.puzzle_language,2) = b.puzzle_language
@@ -105,7 +133,7 @@ create temp table temp_coin_gain_1 as
 select distinct a.user_id,a.app_name,a.platform,left(a.puzzle_language,2) puzzle_language,
 'true' as retention_status,
 min(ts) as retention_ts
-from raw_data_word.coin_gains a
+from temp_coin_gain a
 left join temp_new_users b
 on a.user_id = b.user_id and a.app_name = b.app_name and a.platform = b.platform
 and left(a.puzzle_language,2) = b.puzzle_language
@@ -116,6 +144,16 @@ and a.puzzle_language = $puzzle_language
 group by 1,2,3,4,5
 ;
 
+
+--提取coin_cost
+create temp table temp_coin_cost as
+select *
+from raw_data_word.coin_costs
+where trunc(ts) >= $date
+and app_name = $app_name
+and platform in ('googleplay','ios')
+;
+
 --用户coin_cost数据_7天
 create temp table temp_coin_cost_0 as
 select a.user_id,a.app_name,a.platform,left(a.puzzle_language,2) puzzle_language,
@@ -123,7 +161,7 @@ a.ts,a.level,null as challenge_date,
 a.coin_before - a.cost as coin_after,null as name,
 b.install_date,b.first_nation,b.first_iap_date,
 'coin_cost' as type
-from raw_data_word.coin_costs a
+from temp_coin_cost a
 left join temp_new_users b
 on a.user_id = b.user_id and a.app_name = b.app_name and a.platform = b.platform
 and left(a.puzzle_language,2) = b.puzzle_language
@@ -138,7 +176,7 @@ create temp table temp_coin_cost_1 as
 select distinct a.user_id,a.app_name,a.platform,left(a.puzzle_language,2) puzzle_language,
 'true' as retention_status,
 min(ts) as retention_ts
-from raw_data_word.coin_costs a
+from temp_coin_cost a
 left join temp_new_users b
 on a.user_id = b.user_id and a.app_name = b.app_name and a.platform = b.platform
 and left(a.puzzle_language,2) = b.puzzle_language
@@ -150,6 +188,15 @@ group by 1,2,3,4,5
 ;
 
 
+--提取item_use
+create temp table temp_item_use as
+select *
+from raw_data_word.item_use
+where trunc(ts) >= $date
+and app_name = $app_name
+and platform in ('googleplay','ios')
+;
+
 --用户item_use_hint数据_7天
 create temp table temp_item_use_hint_0 as
 select a.user_id,a.app_name,a.platform,left(a.puzzle_language,2) puzzle_language,
@@ -157,7 +204,7 @@ a.ts,a.level,null as challenge_date,
 null::integer as coin_after,null as name,
 b.install_date,b.first_nation,b.first_iap_date,
 'item_use_hint' as type
-from raw_data_word.item_use a
+from temp_item_use a
 left join temp_new_users b
 on a.user_id = b.user_id and a.app_name = b.app_name and a.platform = b.platform
 and left(a.puzzle_language,2) = b.puzzle_language
@@ -175,7 +222,7 @@ a.ts,a.level,null as challenge_date,
 null::integer as coin_after,null as name,
 b.install_date,b.first_nation,b.first_iap_date,
 'item_use_videohint' as type
-from raw_data_word.item_use a
+from temp_item_use a
 left join temp_new_users b
 on a.user_id = b.user_id and a.app_name = b.app_name and a.platform = b.platform
 and left(a.puzzle_language,2) = b.puzzle_language
@@ -186,12 +233,14 @@ and a.puzzle_language = $puzzle_language
 and item_type = 'video_hint'
 ;
 
+
+
 --用户item_use数据_8-14
 create temp table temp_item_use_1 as
 select distinct a.user_id,a.app_name,a.platform,left(a.puzzle_language,2) puzzle_language,
 'true' as retention_status,
 min(ts) as retention_ts
-from raw_data_word.item_use a
+from temp_item_use a
 left join temp_new_users b
 on a.user_id = b.user_id and a.app_name = b.app_name and a.platform = b.platform
 and left(a.puzzle_language,2) = b.puzzle_language
@@ -202,7 +251,14 @@ and a.puzzle_language = $puzzle_language
 group by 1,2,3,4,5
 ;
 
-
+--提取reward_video
+create temp table temp_reward_video as
+select *
+from raw_data_word.reward_videos
+where trunc(ts) >= $date
+and app_name = $app_name
+and platform in ('googleplay','ios')
+;
 
 --用户reward_video数据_7天
 create temp table temp_reward_video_0 as
@@ -211,7 +267,7 @@ a.ts,a.level,null as challenge_date,
 null::integer as coin_after,null as name,
 b.install_date,b.first_nation,b.first_iap_date,
 'reward_video' as type
-from raw_data_word.reward_videos a
+from temp_reward_video a
 left join temp_new_users b
 on a.user_id = b.user_id and a.app_name = b.app_name and a.platform = b.platform
 and left(a.puzzle_language,2) = b.puzzle_language
@@ -227,7 +283,7 @@ create temp table temp_reward_video_1 as
 select distinct a.user_id,a.app_name,a.platform,left(a.puzzle_language,2) puzzle_language,
 'true' as retention_status,
 min(ts) as retention_ts
-from raw_data_word.reward_videos a
+from temp_reward_video a
 left join temp_new_users b
 on a.user_id = b.user_id and a.app_name = b.app_name and a.platform = b.platform
 and left(a.puzzle_language,2) = b.puzzle_language
@@ -239,6 +295,15 @@ and slot in ('coin','hint')
 group by 1,2,3,4,5
 ;
 
+--提取sys_new_taps
+create temp table temp_sys_new_tap as
+select *
+from raw_data_word.sys_new_taps
+where trunc(ts) >= $date
+and app_name = $app_name
+and platform in ('googleplay','ios')
+;
+
 --用户sys_new_taps数据_7天
 create temp table temp_sys_new_tap_0 as
 select a.user_id,a.app_name,a.platform,left(a.puzzle_language,2) puzzle_language,
@@ -246,7 +311,7 @@ a.ts,a.level,null as challenge_date,
 null::integer as coin_after,name,
 b.install_date,b.first_nation,b.first_iap_date,
 'sys_new_tap' as type
-from raw_data_word.sys_new_taps a
+from temp_sys_new_tap a
 left join temp_new_users b
 on a.user_id = b.user_id and a.app_name = b.app_name and a.platform = b.platform
 and left(a.puzzle_language,2) = b.puzzle_language
@@ -262,7 +327,7 @@ create temp table temp_sys_new_tap_1 as
 select distinct a.user_id,a.app_name,a.platform,left(a.puzzle_language,2) puzzle_language,
 'true' as retention_status,
 min(ts) as retention_ts
-from raw_data_word.sys_new_taps a
+from temp_sys_new_tap a
 left join temp_new_users b
 on a.user_id = b.user_id and a.app_name = b.app_name and a.platform = b.platform
 and left(a.puzzle_language,2) = b.puzzle_language
@@ -357,7 +422,8 @@ from temp_user_retention
 --7日集合  8-14retention数据
 create temp table temp_user_info_before7_after7 as
 select a.*,
-b.retention_ts
+b.retention_ts,
+null as retention_predict
 from temp_user_info_7 a
 left join temp_user_info_14 b
 on a.user_id = b.user_id and a.app_name = b.app_name and a.platform = b.platform and a.puzzle_language = b.puzzle_language
@@ -366,18 +432,18 @@ order by 2,3,4,5,1
 
 
 
-select install_date,app_name,count(1) from temp_user_info_before7_after7 where puzzle_language = 'En' group by 1,2 order by 2,1 desc;
+--select install_date,app_name,count(1) from temp_user_info_before7_after7 where puzzle_language = 'En' group by 1,2 order by 2,1 desc;
 
-select * from temp_user_info_before7_after7 where install_date = $date;
+--select * from temp_user_info_before7_after7 where install_date = $date;
 
 
 
-/*
-delete table report_word.user_info_before7_after7 where install_date = $date;
+
+delete report_word.user_info_before7_after7 where install_date = $date;
 
 insert into report_word.user_info_before7_after7
 select * from temp_user_info_before7_after7
 ;
 
 select * from temp_user_info_before7_after7 where install_date = $date;
-*/
+
