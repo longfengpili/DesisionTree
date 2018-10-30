@@ -41,7 +41,7 @@ class db_redshift():
         sql = re.sub('\$.*?,','null,',sql)
         sql = re.sub('\$.*?\)','null)',sql)
         sql = re.sub('\$.*? ','null ',sql)
-        # redshift_log.info(sql)
+        redshift_log.debug(sql)
         return sql
 
     def redshift_select(self,sql,**kw):
