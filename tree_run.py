@@ -77,6 +77,25 @@ class TreeRun(DecisionTreeClasser,db_redshift):
         result_pre = pd.concat([result,Series(result_pre)],axis=1)
         result_pre.columns = result.columns + list('retention_predict')
 
+        return result
+
+        
+    def predict_user_retention_status(self,data):
+        '''
+        1、load model
+        2、change data
+        3、predict
+        '''
+        recent_model = self.load_recent_model()
+        result = self.modify_data(data)
+        
+        x = result.iloc[:,6:13].values
+        result_pre = recent_model.predict(x)
+        result_pre = pd.concat([result.drop(columns=['retention_predict']),Series(result_pre)],axis=1)
+        result_pre.columns = ['user_id', 'app_name', 'platform', 'puzzle_language', 'install_date',
+       'first_nation', 'level_max', 'load_days', 'challenge_gids','challenge_games', 'coin_after', 'enjoy_status',  'iap_status', 'retention_status','first_iap_date',
+       'retention_ts', 'retention_predict']
+
         return result_pre
 
     def update_predict_info(self,date,data_pre):
