@@ -848,3 +848,15 @@ could not connect to server: Connection timed out (0x0000274C/10060)
 	Is the server running on host "casual-bi-redshift.tuanguwen.com" (50.17.41.240) and accepting
 	TCP/IP connections on port 5439?
 
+2018-10-31 11:09:13,127 - redshift - DEBUG - redshift.py - 44 - select * from report_word.user_info_before7_after7 limit 100
+2018-10-31 11:10:09,121 - redshift - DEBUG - redshift.py - 44 - select * from report_word.user_info_before7_after7 limit 100
+2018-10-31 11:12:52,023 - redshift - DEBUG - redshift.py - 44 - select * from report_word.user_info_before7_after7 limit 100
+2018-10-31 11:13:22,979 - redshift - DEBUG - redshift.py - 44 - select * from report_word.user_info_before7_after7 limit 100
+2018-10-31 11:13:39,155 - redshift - DEBUG - redshift.py - 44 - select * from report_word.user_info_before7_after7 limit 100
+2018-10-31 11:14:47,924 - redshift - DEBUG - redshift.py - 44 - select * from report_word.user_info_before7_after7 limit 100
+2018-10-31 11:16:12,438 - redshift - DEBUG - redshift.py - 44 - select * from report_word.user_info_before7_after7 limit 100
+2018-10-31 11:16:46,650 - redshift - DEBUG - redshift.py - 44 - select * from report_word.user_info_before7_after7 limit 100
+2018-10-31 11:17:03,920 - redshift - DEBUG - redshift.py - 44 - select * from report_word.user_info_before7_after7 limit 100
+2018-10-31 11:17:52,667 - redshift - DEBUG - redshift.py - 44 - select * from report_word.user_info_before7_after7 limit 100
+2018-10-31 11:18:25,976 - redshift - DEBUG - redshift.py - 44 - select * from report_word.user_info_before7_after7 limit 100
+2018-10-31 11:19:17,931 - redshift - DEBUG - redshift.py - 44 - select * from report_word.user_info_before7_after7 limit 100

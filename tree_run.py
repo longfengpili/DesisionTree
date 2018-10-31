@@ -69,16 +69,11 @@ class TreeRun(DecisionTreeClasser,db_redshift):
         '''
         recent_model = self.load_recent_model()
         result = self.modify_data(data)
-
-        run_log.info(result.columns)
         
         x = result.loc[:,['level_max','load_days', 'challenge_gids','challenge_games', 'coin_after', 'enjoy_status_m', 'iap_status_m']].values
         result_pre = recent_model.predict(x)
         result_pre = pd.concat([result,Series(result_pre)],axis=1)
-
-        run_log.info(result_pre.columns)
-        
-        result_pre.columns = result.columns + ['retention_predict']
+        result_pre.columns = list(result.columns) + ['retention_predict_m']
 
         return result_pre
 
