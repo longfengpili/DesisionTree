@@ -1,6 +1,12 @@
-2018-10-30 20:51:33,054 - run - INFO - tree_run.py - 73 - Index(['user_id', 'app_name', 'platform', 'puzzle_language', 'install_date',
+2018-10-31 09:11:24,123 - run - INFO - tree_run.py - 73 - Index(['user_id', 'app_name', 'platform', 'puzzle_language', 'install_date',
        'first_nation', 'level_max', 'load_days', 'challenge_gids',
        'challenge_games', 'coin_after', 'enjoy_status', 'first_iap_date',
-       'retention_ts', 'retention_predict', 'coin_after_m', 'enjoy_status_m',
-       'iap_status_m', 'retention_status_m'],
+       'retention_ts', 'retention_predict', 'enjoy_status_m', 'iap_status_m',
+       'retention_status_m'],
+      dtype='object')
+2018-10-31 09:12:53,524 - run - INFO - tree_run.py - 73 - Index(['user_id', 'app_name', 'platform', 'puzzle_language', 'install_date',
+       'first_nation', 'level_max', 'load_days', 'challenge_gids',
+       'challenge_games', 'coin_after', 'enjoy_status', 'first_iap_date',
+       'retention_ts', 'retention_predict', 'enjoy_status_m', 'iap_status_m',
+       'retention_status_m'],
       dtype='object')

@@ -49,7 +49,7 @@ class TreeRun(DecisionTreeClasser,db_redshift):
         result_all = DataFrame(sql_result,columns=self.columns)
         result = result_all.copy()
         result['first_nation'] = result['first_nation'].fillna('unknown')
-        result['coin_after_m'] = result['coin_after'].fillna(200)
+        result['coin_after'] = result['coin_after'].fillna(200)
         result['enjoy_status_m'] = result['enjoy_status'].apply(lambda x : -1 if pd.isna(x) else 1 if x == 'enjoy-yes' else 0)
         result['iap_status_m'] = result['first_iap_date'].apply(lambda x:0 if pd.isna(x) else 1)
         result['retention_status_m'] = result['retention_ts'].apply(lambda x:0 if pd.isna(x) else 1)
@@ -72,53 +72,45 @@ class TreeRun(DecisionTreeClasser,db_redshift):
 
         run_log.info(result.columns)
         
-        x = result.loc[:,['level_max','load_days', 'challenge_gids','challenge_games', 'coin_after_m', 'enjoy_status_m', 'iap_status_m',]].values
+        x = result.loc[:,['level_max','load_days', 'challenge_gids','challenge_games', 'coin_after', 'enjoy_status_m', 'iap_status_m']].values
         result_pre = recent_model.predict(x)
         result_pre = pd.concat([result,Series(result_pre)],axis=1)
-        result_pre.columns = result.columns + list('retention_predict')
 
-        return result
-
+        run_log.info(result_pre.columns)
         
-    def predict_user_retention_status(self,data):
-        '''
-        1、load model
-        2、change data
-        3、predict
-        '''
-        recent_model = self.load_recent_model()
-        result = self.modify_data(data)
-        
-        x = result.iloc[:,6:13].values
-        result_pre = recent_model.predict(x)
-        result_pre = pd.concat([result.drop(columns=['retention_predict']),Series(result_pre)],axis=1)
-        result_pre.columns = ['user_id', 'app_name', 'platform', 'puzzle_language', 'install_date',
-       'first_nation', 'level_max', 'load_days', 'challenge_gids','challenge_games', 'coin_after', 'enjoy_status',  'iap_status', 'retention_status','first_iap_date',
-       'retention_ts', 'retention_predict']
+        result_pre.columns = result.columns + ['retention_predict']
 
         return result_pre
 
-    def update_predict_info(self,date,data_pre):
-        data_pre = data_pre.drop(columns=['iap_status', 'retention_status'])
-        print(data_pre.dtypes)
-        data = ','.join([str(tuple(i[1].values)) for i in data_pre.iterrows()])
+    def update_predict_info(self,data_pre,n=1000):
+        k = 0
+        sql_list = []
+        update_result = {}
         
+        for i in data_pre.iterrows():
+            sql = '''
+                update report_word.user_info_before7_after7
+                set retention_predict = {}
+                where user_id = {}
+                and app_name = {} and platform = {}
+                and puzzle_language = {}
+            '''.format(i[1].retention_predict,i[1].user_id,i[1].app_name,
+                        i[1].platform,i[1].puzzle_language)
 
-        sql_delete = 'delete report_word.user_info_before7_after7 where install_date = {}'.format(date)
-        rows,result = self.redshift_select(sql_delete)
-        print(rows,result)
+            update_result.setdefault(i[1].install_date,0)
+            update_result[i[1].install_date] += 1
+            sql_list.append(sql)
+            k += 1
 
-        sql_insert = '''
-            insert into report_word.user_info_before7_after7
-            (user_id, app_name, platform, puzzle_language, install_date,
-            first_nation, level_max, load_days, challenge_gids,challenge_games, coin_after, enjoy_status,first_iap_date,
-            retention_ts, retention_predict)
-            values
-            {}
-        '''.format(data)
+            if k == n:
+                sql_update = ';'.join(sql_list)
+                rows,result = self.redshift_select(sql_update)
+                run_log.info('更新{}条记录'.format(rows))
+                row_num += rows
+                k = 0
+                sql_list = []
 
-        rows,result = self.redshift_select(sql_insert)
-        print(rows,result)
+        run_log.info('更新{}条记录'.format(update_result))
 
         return update_result
         
@@ -167,12 +159,12 @@ class TreeRun(DecisionTreeClasser,db_redshift):
         run_log.info('开始预测数据')
         result_pre = self.predict_user_retention_status(result) #预测数据
         run_log.info('开始更新预测数据')
-        update_result = self.update_predict_info(date,result_pre) #更新预测数据
+        update_result = self.update_predict_info(result_pre) #更新预测数据
         run_log.info('开始计算score、right_in_predictwrong')
         score,right_in_predictwrong = self.model_predict_score(date) #计算score、right_in_predictwrong
 
         while score <= 0.8 and right_in_predictwrong >= 0.1: #重新构建模型
-            run_log.info('更新模型，前模型score为{},right_in_predictwrong为{}'.format(score,right_in_predictwrong))
+            run_log.info('重构模型，前模型score为{},right_in_predictwrong为{}'.format(score,right_in_predictwrong))
             start_date = run_date - timedelta(days=28)
             end_date = run_date - timedelta(days=1)
             sql = '''
@@ -187,8 +179,9 @@ class TreeRun(DecisionTreeClasser,db_redshift):
             rows,sql_result = self.redshift_select(sql)
             result_for_fit = self.modify_data(sql_result)
 
-            x = result_for_fit.iloc[:,6:13].values
-            y = result_for_fit.iloc[:,13].values
+            x = result_for_fit.loc[:,'level_max','load_days', 'challenge_gids','challenge_games', 
+                                                'coin_after', 'enjoy_status_m', 'iap_status_m'].values
+            y = result_for_fit.loc[:,'retention_status_m'].values
 
             x_train,x_test,y_train,y_test = self.split_data(x,y)
 
