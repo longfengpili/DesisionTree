@@ -67,7 +67,6 @@ and app_name = $app_name
 and platform in ('googleplay','ios')
 ;
 
-
 --用户challenge关卡数据_7天
 create temp table temp_challenge_play_level_0 as
 select a.user_id,a.app_name,a.platform,left(a.puzzle_language,2) puzzle_language,
@@ -100,7 +99,6 @@ and a.platform in ('googleplay','ios')
 and a.puzzle_language = $puzzle_language
 group by 1,2,3,4,5
 ;
-
 
 --提取coin_gain
 create temp table temp_coin_gain as
@@ -144,7 +142,6 @@ and a.puzzle_language = $puzzle_language
 group by 1,2,3,4,5
 ;
 
-
 --提取coin_cost
 create temp table temp_coin_cost as
 select *
@@ -186,7 +183,6 @@ and a.platform in ('googleplay','ios')
 and a.puzzle_language = $puzzle_language
 group by 1,2,3,4,5
 ;
-
 
 --提取item_use
 create temp table temp_item_use as
@@ -410,7 +406,6 @@ on a.user_id = b.user_id and a.app_name = b.app_name and a.platform = b.platform
 and a.puzzle_language = b.puzzle_language
 ;
 
-
 --用户后8-14天登陆情况
 create temp table temp_user_info_14 as
 select distinct user_id,app_name,platform,puzzle_language,retention_status,
@@ -423,21 +418,16 @@ from temp_user_retention
 create temp table temp_user_info_before7_after7 as
 select a.*,
 b.retention_ts,
-null as retention_predict
+null::integer as retention_predict
 from temp_user_info_7 a
 left join temp_user_info_14 b
 on a.user_id = b.user_id and a.app_name = b.app_name and a.platform = b.platform and a.puzzle_language = b.puzzle_language
 order by 2,3,4,5,1
 ;
 
-
-
 --select install_date,app_name,count(1) from temp_user_info_before7_after7 where puzzle_language = 'En' group by 1,2 order by 2,1 desc;
 
 --select * from temp_user_info_before7_after7 where install_date = $date;
-
-
-
 
 delete report_word.user_info_before7_after7 where install_date = $date;
 

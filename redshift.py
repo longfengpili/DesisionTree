@@ -68,7 +68,24 @@ class db_redshift():
 
         return rows,result
 
-    
+    def redshift_update(self,sql,**kw):
+        change_sql = self.change_sql(sql,**kw)
+        rows = 0
+
+        conn = self.__redshift_connect()
+        cur = conn.cursor()
+        try:
+            cur.execute(change_sql)
+            rows = cur.rowcount
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            redshift_log.error(e)
+            redshift_log.info(change_sql)
+        conn.close()
+
+        return rows
+
     def redshift_insert(self,sql,**kw):
         change_sql = self.change_sql(sql,**kw)
         rows = 0

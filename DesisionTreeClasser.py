@@ -44,7 +44,7 @@ class DecisionTreeClasser():
         end = datetime.now()
         
         seconds =(end - start).seconds
-        tree_log.info('grid_search_cv,共计{}种，用时{}秒'.format(kinds,seconds))
+        tree_log.info('grid_search_cv,共计{}种，用时{}秒,base_params{}'.format(kinds,seconds,grid_search.best_params_))
         
         return grid_search.cv_results_,grid_search.best_params_
 
