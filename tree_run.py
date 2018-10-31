@@ -172,19 +172,18 @@ class TreeRun(DecisionTreeClasser,db_redshift):
                 from report_word.user_info_before7_after7
                 where install_date >= '{}' and install_date <= '{}'
                 and app_name = '{}' and puzzle_language ='{}'
-                and retention_predict is not null
                 ;
             '''.format(start_date,end_date,self.app_name,self.puzzle_language)
 
             rows,sql_result = self.redshift_select(sql)
             result_for_fit = self.modify_data(sql_result)
 
-            run_log.info('重构模型，模型数据记录{}条'.format(len(result_for_fit)))
+            run_log.info('重构模型，模型数据记录{},{}条'.format(rows,len(result_for_fit)))
 
             x = result_for_fit.loc[:,['level_max','load_days', 'challenge_gids','challenge_games', 'coin_after', 'enjoy_status_m', 'iap_status_m']].values
             y = result_for_fit.loc[:,'retention_status_m'].values
 
-            x_train,_,y_train,_ = self.split_data(x,y)
+            x_train,x_test,y_train,y_test = self.split_data(x,y)
 
             tree = DecisionTreeClasser()
             param_grid = {'max_depth': np.arange(4,5),
@@ -192,6 +191,9 @@ class TreeRun(DecisionTreeClasser,db_redshift):
                         'min_samples_split': np.arange(0.01,0.1,0.02)
                         }
             _,best_params = tree.grid_search_cv(x_train,y_train,param_grid,scoring='roc_auc') #调参
+            fit_result = self.desision_fit(best_params,x_train,y_train,x_test,y_test) #测试
+            run_log.info('重构模型，新模型result{}'.format(fit_result))
+
             tree.save_best_model(best_params,x_train,y_train)   #记录model
 
             score,right_in_predictwrong = self.model_predict_score(date) #计算score、right_in_predictwrong 根据新模型
