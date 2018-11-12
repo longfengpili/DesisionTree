@@ -88,8 +88,10 @@ class DecisionTreeClasser():
     def load_recent_model(self):
         try:
             model_list = [i for i in os.listdir(self.dir) if '.model' in i]
+            # print(model_list)
             recent_model = self.dir + '/' +  model_list[-1]
             recent_model = pickle.load(open(recent_model,'rb'))
+            tree_log.info('load模型{}'.format(recent_model))
         except:
             tree_log.info('no model exists !')
             recent_model = None
@@ -97,23 +99,27 @@ class DecisionTreeClasser():
         
 
 if __name__ == '__main__':
-    from sklearn.datasets import load_iris
-    iris = load_iris()
-    x = iris.data[:, :2]  # we only take the first two features.
-    y = iris.target
     tree = DecisionTreeClasser()
+    tree.load_recent_model()
 
-    x_train,x_test,y_train,y_test = tree.split_data(x,y)
 
-    param_grid = {
-        'max_depth':np.arange(1,3,1)
-    }
+    # from sklearn.datasets import load_iris
+    # iris = load_iris()
+    # x = iris.data[:, :2]  # we only take the first two features.
+    # y = iris.target
+    # tree = DecisionTreeClasser()
 
-    results,best_params = tree.grid_search_cv(x_train,y_train,param_grid,scoring=None) #调参
-    tree.save_best_model(best_params,x_train,y_train)   #记录model
-    results_top = tree.grid_search_result_top(results,n=5) #参数前5
-    results_top_all_1 = results_top.apply(lambda x :tree.desision_fit(x.params,x_train,y_train,x_test,y_test),axis=1) #参数前5的测试情况
-    results_top_all = results_top.join(results_top_all_1) #合并
-    print(results_top)
-    print(results_top_all_1)
-    print(results_top_all)
+    # x_train,x_test,y_train,y_test = tree.split_data(x,y)
+
+    # param_grid = {
+    #     'max_depth':np.arange(1,3,1)
+    # }
+
+    # results,best_params = tree.grid_search_cv(x_train,y_train,param_grid,scoring=None) #调参
+    # tree.save_best_model(best_params,x_train,y_train)   #记录model
+    # results_top = tree.grid_search_result_top(results,n=5) #参数前5
+    # results_top_all_1 = results_top.apply(lambda x :tree.desision_fit(x.params,x_train,y_train,x_test,y_test),axis=1) #参数前5的测试情况
+    # results_top_all = results_top.join(results_top_all_1) #合并
+    # print(results_top)
+    # print(results_top_all_1)
+    # print(results_top_all)

@@ -13,7 +13,7 @@ puzzle_language = tsetting.puzzle_language
 days = tsetting.days
 random_state = int(tsetting.random_state)
 model_dir = tsetting.model_dir
-test_size = int(tsetting.test_size)
+test_size = float(tsetting.test_size)
 columns = tsetting.columns
 
 

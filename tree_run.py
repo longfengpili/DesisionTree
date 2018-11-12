@@ -196,7 +196,14 @@ class TreeRun(DecisionTreeClasser,db_redshift):
 
             tree.save_best_model(best_params,x_train,y_train)   #记录model
 
-            score,right_in_predictwrong = self.model_predict_score(date) #计算score、right_in_predictwrong 根据新模型
+            run_log.info('开始预测数据')
+            result_pre = self.predict_user_retention_status(result) #预测数据
+            run_log.info('预测结束,预测数据数量为{}'.format(len(result_pre)))
+            run_log.info('开始更新预测数据')
+            update_result = self.update_predict_info(result_pre) #更新预测数据
+            run_log.info('更新预测数据结束，结果{}'.format(update_result))
+            run_log.info('开始计算score、right_in_predictwrong')
+            score,right_in_predictwrong = self.model_predict_score(date) #计算score、right_in_predictwrong
 
         run_log.info('score为{},right_in_predictwrong为{}'.format(score,right_in_predictwrong))
 
@@ -211,6 +218,19 @@ if __name__ == '__main__':
     tree_run = TreeRun()
     date = date(2018,10,15)
     tree_run.main(date=date)
+
+    # fpath = r'C:\Users\chunyang.xu\Google 云端硬盘\桌面备份\2018年9月28日-word_data\word_v1_retention.csv'
+    # with open(fpath,'r',encoding='utf-8') as f:
+    #     sql_result = pd.read_csv(f,sep='|')
+    # result_for_fit = tree_run.modify_data(sql_result)
+    # print(result_for_fit[:5])
+    # run_log.info('重构模型，模型数据记录{}条'.format(len(result_for_fit)))
+    # x = result_for_fit.loc[:,['level_max','load_days', 'challenge_gids','challenge_games', 'coin_after', 'enjoy_status_m', 'iap_status_m']].values
+    # y = result_for_fit.loc[:,'retention_status_m'].values
+    # x_train,x_test,y_train,y_test = tree_run.split_data(x,y)
+    # print(len(x_train),len(x_test),len(y_train),len(y_test))
+
+
     # sql = 'select * from report_word.user_info_before7_after7 limit 12'
     # run_log.info('开始更新数据{}'.format(date))
     # rows,result = tree_run.update_retention_data(sql,date) #更新数据
