@@ -113,19 +113,10 @@ class TreeRun(DecisionTreeClasser,db_redshift):
 
         return update_result
         
-    def model_predict_score(self,date):
-        sql = '''
-            select retention_predict::integer,
-            (case when retention_ts is null then 0 else 1 end) as retention_real
-            from report_word.user_info_before7_after7
-            where install_date = '{}'
-            and app_name = '{}' and puzzle_language ='{}'
-            and retention_predict is not null
-        '''.format(date,self.app_name,self.puzzle_language)
+    def model_predict_score(self,result_pre):
 
-        rows,result = self.redshift_select(sql)
-        result = DataFrame(result,columns=['retention_predict','retention_real'])
-        result = result.groupby(['retention_real','retention_predict'])['retention_predict'].count()
+        result = result_pre.loc[:,['retention_status_m','retention_predict_m']]
+        result = result.groupby(['retention_status_m','retention_predict_m'])['retention_predict_m'].count()
 
         for i in np.arange(0,2):
             for j in np.arange(0,2):
@@ -136,6 +127,18 @@ class TreeRun(DecisionTreeClasser,db_redshift):
         right_in_predictwrong = result[(1,0)] /(result[(0,0)] + result[(1,0)] )
 
         return score,right_in_predictwrong
+
+    def predict_and_update(self,data):
+
+        run_log.info('开始预测数据')
+        result_pre = self.predict_user_retention_status(data) #预测数据
+        run_log.info('预测结束,预测数据数量为{}'.format(len(result_pre)))
+        # print(result_pre[:5])
+        run_log.info('开始计算score、right_in_predictwrong')
+        score,right_in_predictwrong = self.model_predict_score(result_pre) #计算score、right_in_predictwrong
+
+        return score,right_in_predictwrong,result_pre
+
 
     def main(self,date=None):
         '''
@@ -149,22 +152,22 @@ class TreeRun(DecisionTreeClasser,db_redshift):
         with open('./sqls/retention.sql','r',encoding='utf-8') as f:
             sql = f.read()
 
-        # sql = 'select * from report_word.user_info_before7_after7 limit 1000'
+        # sql = 'select * from report_word.user_info_before7_after7 limit 100'
 
         run_log.info('开始更新数据{}'.format(date))
         rows,result = self.update_retention_data(sql,date) #更新数据
         run_log.info('更新数据结束，更新{}条数据'.format(rows))
-        run_log.info('开始预测数据')
-        result_pre = self.predict_user_retention_status(result) #预测数据
-        run_log.info('预测结束,预测数据数量为{}'.format(len(result_pre)))
-        run_log.info('开始更新预测数据')
-        update_result = self.update_predict_info(result_pre) #更新预测数据
-        run_log.info('更新预测数据结束，结果{}'.format(update_result))
-        run_log.info('开始计算score、right_in_predictwrong')
-        score,right_in_predictwrong = self.model_predict_score(date) #计算score、right_in_predictwrong
 
-        if score <= 0.8 and right_in_predictwrong >= 0.1: #重新构建模型
-            run_log.info('重构模型，前模型score为{},right_in_predictwrong为{}'.format(score,right_in_predictwrong))
+        score,right_in_predictwrong,result_pre = self.predict_and_update(result)
+
+        if score >= 0.8 and right_in_predictwrong <= 0.2:
+            run_log.info('现有模型符合条件，{}的预测结果：score为{},right_in_predictwrong为{}'.format(date,score,right_in_predictwrong))
+            run_log.info('开始更新预测数据')
+            update_result = self.update_predict_info(result_pre) #更新预测数据
+            run_log.info('更新预测数据结束，结果{}'.format(update_result))
+
+        else: #重构模型
+            run_log.info('重构模型，使用前模型，{}的预测结果score为{},right_in_predictwrong为{}'.format(date,score,right_in_predictwrong))
             start_date = date - timedelta(days=56)
             end_date = date - timedelta(days=1)
             sql = '''
@@ -178,7 +181,7 @@ class TreeRun(DecisionTreeClasser,db_redshift):
             rows,sql_result = self.redshift_select(sql)
             result_for_fit = self.modify_data(sql_result)
 
-            run_log.info('重构模型，模型数据记录{},{}条'.format(rows,len(result_for_fit)))
+            run_log.info('重构模型，原始记录{}条,去掉异常数据，使用{}条训练模型'.format(rows,len(result_for_fit)))
 
             x_column = ['level_max','load_days', 'challenge_gids','challenge_games', 'coin_after', 'enjoy_status_m', 'iap_status_m']
             x = result_for_fit.loc[:,x_column].values
@@ -197,16 +200,11 @@ class TreeRun(DecisionTreeClasser,db_redshift):
 
             tree.save_best_model(best_params,x_train,y_train,feature_names=x_column)   #记录model
 
-            run_log.info('开始预测数据')
-            result_pre = self.predict_user_retention_status(result) #预测数据
-            run_log.info('预测结束,预测数据数量为{}'.format(len(result_pre)))
+            score,right_in_predictwrong,result_pre = self.predict_and_update(result)
+            run_log.info('重构模型后，{}的结果：score为{},right_in_predictwrong为{}'.format(date,score,right_in_predictwrong))
             run_log.info('开始更新预测数据')
             update_result = self.update_predict_info(result_pre) #更新预测数据
             run_log.info('更新预测数据结束，结果{}'.format(update_result))
-            run_log.info('开始计算score、right_in_predictwrong')
-            score,right_in_predictwrong = self.model_predict_score(date) #计算score、right_in_predictwrong
-
-        run_log.info('score为{},right_in_predictwrong为{}'.format(score,right_in_predictwrong))
 
         return score,right_in_predictwrong
 
