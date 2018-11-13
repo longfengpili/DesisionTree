@@ -180,21 +180,22 @@ class TreeRun(DecisionTreeClasser,db_redshift):
 
             run_log.info('重构模型，模型数据记录{},{}条'.format(rows,len(result_for_fit)))
 
-            x = result_for_fit.loc[:,['level_max','load_days', 'challenge_gids','challenge_games', 'coin_after', 'enjoy_status_m', 'iap_status_m']].values
+            x_column = ['level_max','load_days', 'challenge_gids','challenge_games', 'coin_after', 'enjoy_status_m', 'iap_status_m']
+            x = result_for_fit.loc[:,x_column].values
             y = result_for_fit.loc[:,'retention_status_m'].values
 
             x_train,x_test,y_train,y_test = self.split_data(x,y)
 
             tree = DecisionTreeClasser()
-            param_grid = {'max_depth': np.arange(4,5),
-                        'max_leaf_nodes': np.arange(60,80,10),
+            param_grid = {'max_depth': np.arange(6,8),
+                        'max_leaf_nodes': np.arange(120,170,10),
                         'min_samples_split': np.arange(0.01,0.1,0.02)
                         }
             _,best_params = tree.grid_search_cv(x_train,y_train,param_grid,scoring='roc_auc') #调参
             fit_result = self.desision_fit(best_params,x_train,y_train,x_test,y_test) #测试
             run_log.info('重构模型，新模型result{}'.format(fit_result))
 
-            tree.save_best_model(best_params,x_train,y_train)   #记录model
+            tree.save_best_model(best_params,x_train,y_train,feature_names=x_column)   #记录model
 
             run_log.info('开始预测数据')
             result_pre = self.predict_user_retention_status(result) #预测数据
