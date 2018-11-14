@@ -89,9 +89,9 @@ class DecisionTreeClasser():
         try:
             model_list = [i for i in os.listdir(self.dir) if '.model' in i]
             # print(model_list)
-            recent_model = self.dir + '/' +  model_list[-1]
-            recent_model = pickle.load(open(recent_model,'rb'))
-            tree_log.info('load模型{}'.format(recent_model))
+            recent_model_path = self.dir + '/' +  model_list[-1]
+            recent_model = pickle.load(open(recent_model_path,'rb'))
+            tree_log.info('load模型【{}】,\n{}'.format(recent_model_path,recent_model))
         except:
             tree_log.info('no model exists !')
             recent_model = None

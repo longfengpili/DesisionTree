@@ -123,8 +123,8 @@ class TreeRun(DecisionTreeClasser,db_redshift):
                 if (i,j) not in list(result.index.values):
                     result[(i,j)] = 0
 
-        score = (result[(0,0)] + result[(1,1)]) /result.sum()
-        right_in_predictwrong = result[(1,0)] /(result[(0,0)] + result[(1,0)] )
+        score = round((result[(0,0)] + result[(1,1)]) /result.sum(),4)
+        right_in_predictwrong = round(result[(1,0)] /(result[(0,0)] + result[(1,0)]),4)
 
         return score,right_in_predictwrong
 
@@ -196,7 +196,7 @@ class TreeRun(DecisionTreeClasser,db_redshift):
                         }
             _,best_params = tree.grid_search_cv(x_train,y_train,param_grid,scoring='roc_auc') #调参
             fit_result = self.desision_fit(best_params,x_train,y_train,x_test,y_test) #测试
-            run_log.info('重构模型，新模型result{}'.format(fit_result))
+            run_log.info('重构模型，新模型【result】\n{}'.format(fit_result))
 
             tree.save_best_model(best_params,x_train,y_train,feature_names=x_column)   #记录model
 
@@ -215,8 +215,11 @@ class TreeRun(DecisionTreeClasser,db_redshift):
 if __name__ == '__main__':
 
     tree_run = TreeRun()
-    date = date(2018,10,15)
-    tree_run.main(date=date)
+    date_1 = date(2018,10,3)
+    date_2 = date(2018,10,10)
+    while date_1 < date_2:
+        tree_run.main(date=date_1)
+        date_1 += timedelta(days=1)
 
     # fpath = r'C:\Users\chunyang.xu\Google 云端硬盘\桌面备份\2018年9月28日-word_data\word_v1_retention.csv'
     # with open(fpath,'r',encoding='utf-8') as f:
