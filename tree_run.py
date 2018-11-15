@@ -83,31 +83,33 @@ class TreeRun(DecisionTreeClasser,db_redshift):
 
         return result_pre
 
-    def update_predict_info(self,data_pre,n=10000):
+    def update_predict_info(self,data_pre):
         
+        update_data = {}
         update_result = {}
-
-        chunks = [data_pre[i: i + n] for i in range(0, len(data_pre), n)]
         
-        for i in chunks:
-            sql_list = []
-            for j in i.iterrows():
-                sql = '''
-                    update report_word.user_info_before7_after7
-                    set retention_predict = {}
-                    where user_id = '{}'
-                    and app_name = '{}' and platform = '{}'
-                    and puzzle_language = '{}'
-                '''.format(j[1].retention_predict_m,j[1].user_id,j[1].app_name,
-                            j[1].platform,j[1].puzzle_language)
+        for i in data_pre.iterrows():
+            key = '__'.join([str(i) for i in [i[1].install_date,i[1].retention_predict_m,i[1].app_name,i[1].platform,i[1].puzzle_language]])
+            update_data.setdefault(key,[])
+            update_data[key].append(i[1].user_id)
 
-                update_result.setdefault(j[1].install_date,0)
-                update_result[j[1].install_date] += 1
-                sql_list.append(sql)
+        for i in update_data:
+            install_date,retention_predict,app_name,platform,puzzle_language = i.split('__')
+            users = tuple(update_data[i])
 
-            sql_update = ';'.join(sql_list)
-            rows = self.redshift_update(sql_update)
-            run_log.info('更新{}条记录'.format(len(i)))
+            update_result.setdefault(i,0)
+            update_result[i] += len(users)
+
+            sql = '''
+                update report_word.user_info_before7_after7
+                set retention_predict = {}
+                where user_id in {}
+                and app_name = '{}' and platform = '{}'
+                and puzzle_language = '{}'
+            '''.format(retention_predict,users,app_name,platform,puzzle_language)
+
+            rows = self.redshift_update(sql)
+            run_log.info('更新key为【{}】,{}条记录'.format(i,rows))
 
         run_log.info('更新{}条记录'.format(update_result))
 
@@ -170,6 +172,7 @@ class TreeRun(DecisionTreeClasser,db_redshift):
             run_log.info('重构模型，使用前模型，{}的预测结果score为{},right_in_predictwrong为{}'.format(date,score,right_in_predictwrong))
             start_date = date - timedelta(days=56)
             end_date = date - timedelta(days=1)
+            run_log.info('重构模型，使用【{}】-【{}】的数据重构模型'.format(start_date,end_date))
             sql = '''
                 select *
                 from report_word.user_info_before7_after7
@@ -215,8 +218,8 @@ class TreeRun(DecisionTreeClasser,db_redshift):
 if __name__ == '__main__':
 
     tree_run = TreeRun()
-    date_1 = date(2018,10,3)
-    date_2 = date(2018,10,10)
+    date_1 = date(2018,10,30)
+    date_2 = date(2018,11,10)
     while date_1 < date_2:
         tree_run.main(date=date_1)
         date_1 += timedelta(days=1)
