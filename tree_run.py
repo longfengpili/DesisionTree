@@ -49,6 +49,7 @@ class TreeRun(DecisionTreeClasser,db_redshift):
         result_all = DataFrame(sql_result,columns=self.columns)
         result = result_all.copy()
         result['first_nation'] = result['first_nation'].fillna('unknown')
+        result['level_max'] = result['level_max'].fillna(0)
         result['coin_after'] = result['coin_after'].fillna(200)
         result['enjoy_status_m'] = result['enjoy_status'].apply(lambda x : -1 if pd.isna(x) else 1 if x == 'enjoy-yes' else 0)
         result['iap_status_m'] = result['first_iap_date'].apply(lambda x:0 if pd.isna(x) else 1)
@@ -149,7 +150,7 @@ class TreeRun(DecisionTreeClasser,db_redshift):
         '''
         if date == None:
             date = datetime.date.today()
-            date = date - timedelta(days=15)
+            date = date - timedelta(days=self.days * 2 + 1)
 
         with open('./sqls/retention.sql','r',encoding='utf-8') as f:
             sql = f.read()
@@ -162,7 +163,13 @@ class TreeRun(DecisionTreeClasser,db_redshift):
 
         score,right_in_predictwrong,result_pre = self.predict_and_update(result)
 
-        if score >= 0.8 and right_in_predictwrong <= 0.2:
+        max_start_date = datetime.date.today() - timedelta(days=self.days * 2 + 1)
+        if date > max_start_date:
+            run_log.info('【{}】未有完整数据，直接开始更新预测数据(【{}】之前的数据才完整)'.format(date,max_start_date))
+            update_result = self.update_predict_info(result_pre) #更新预测数据
+            run_log.info('更新预测数据结束，结果{}'.format(update_result))
+        
+        elif score >= 0.8 and right_in_predictwrong <= 0.2:
             run_log.info('现有模型符合条件，{}的预测结果：score为{},right_in_predictwrong为{}'.format(date,score,right_in_predictwrong))
             run_log.info('开始更新预测数据')
             update_result = self.update_predict_info(result_pre) #更新预测数据
@@ -221,13 +228,13 @@ class TreeRun(DecisionTreeClasser,db_redshift):
 if __name__ == '__main__':
 
     tree_run = TreeRun()
-    tree_run.main()
+    # tree_run.main()
 
-    # date_1 = date(2018,10,30)
-    # date_2 = date(2018,11,10)
-    # while date_1 < date_2:
-    #     tree_run.main(date=date_1)
-    #     date_1 += timedelta(days=1)
+    date_1 = date(2018,11,10)
+    date_2 = date(2018,11,10)
+    while date_1 <= date_2:
+        tree_run.main(date=date_1)
+        date_1 += timedelta(days=1)
 
     # fpath = r'C:\Users\chunyang.xu\Google 云端硬盘\桌面备份\2018年9月28日-word_data\word_v1_retention.csv'
     # with open(fpath,'r',encoding='utf-8') as f:
