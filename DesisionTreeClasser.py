@@ -68,12 +68,10 @@ class DecisionTreeClasser():
 
         return fit_result
         
-    def save_best_model(self,best_params,x_train,y_train,class_name=None,feature_names=None,**kw):
-
+    def save_best_model(self,model_name,best_params,x_train,y_train,class_name=None,feature_names=None,**kw):
+    
         dtc_t = DecisionTreeClassifier(random_state=self.random_state,**(best_params))
         dtc_t.fit(x_train,y_train)
-
-        s = datetime.now().strftime("%Y-%m-%d[%H%M%S]")
         
         if not os.path.exists(self.dir):
             os.mkdir(self.dir)
@@ -81,8 +79,8 @@ class DecisionTreeClasser():
         dot_data = export_graphviz(dtc_t,class_names=class_name,feature_names=feature_names,out_file=None,
                         rounded=True,filled=True,special_characters=True,**kw)
         graph = pydotplus.graph_from_dot_data(dot_data)
-        graph.write_png(self.dir + s + '.png')
-        file = self.dir + s + '.model'
+        graph.write_png(self.dir + model_name + '.png')
+        file = self.dir + model_name + '.model'
         pickle.dump(dtc_t,open(file,'wb'))
         
     def load_recent_model(self):

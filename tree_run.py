@@ -170,7 +170,8 @@ class TreeRun(DecisionTreeClasser,db_redshift):
 
         else: #重构模型
             run_log.info('重构模型，使用前模型，{}的预测结果score为{},right_in_predictwrong为{}'.format(date,score,right_in_predictwrong))
-            start_date = date - timedelta(days=56)
+            interval = 56
+            start_date = date - timedelta(days=interval)
             end_date = date - timedelta(days=1)
             run_log.info('重构模型，使用【{}】-【{}】的数据重构模型'.format(start_date,end_date))
             sql = '''
@@ -201,7 +202,9 @@ class TreeRun(DecisionTreeClasser,db_redshift):
             fit_result = self.desision_fit(best_params,x_train,y_train,x_test,y_test) #测试
             run_log.info('重构模型，新模型【result】\n{}'.format(fit_result))
 
-            tree.save_best_model(best_params,x_train,y_train,feature_names=x_column)   #记录model
+            model_enddate = end_date.strftime('%Y-%m-%d')
+            model_name = '{}({})'.format(model_enddate,interval)
+            tree.save_best_model(model_name,best_params,x_train,y_train,feature_names=x_column)   #记录model
 
             score,right_in_predictwrong,result_pre = self.predict_and_update(result)
             run_log.info('重构模型后，{}的结果：score为{},right_in_predictwrong为{}'.format(date,score,right_in_predictwrong))
@@ -218,11 +221,13 @@ class TreeRun(DecisionTreeClasser,db_redshift):
 if __name__ == '__main__':
 
     tree_run = TreeRun()
-    date_1 = date(2018,10,30)
-    date_2 = date(2018,11,10)
-    while date_1 < date_2:
-        tree_run.main(date=date_1)
-        date_1 += timedelta(days=1)
+    tree_run.main()
+
+    # date_1 = date(2018,10,30)
+    # date_2 = date(2018,11,10)
+    # while date_1 < date_2:
+    #     tree_run.main(date=date_1)
+    #     date_1 += timedelta(days=1)
 
     # fpath = r'C:\Users\chunyang.xu\Google 云端硬盘\桌面备份\2018年9月28日-word_data\word_v1_retention.csv'
     # with open(fpath,'r',encoding='utf-8') as f:
