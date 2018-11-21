@@ -228,13 +228,14 @@ class TreeRun(DecisionTreeClasser,db_redshift):
 if __name__ == '__main__':
 
     tree_run = TreeRun()
-    # tree_run.main()
+    date_1 = date(2018,11,2)
+    tree_run.main(date=date_1)
 
-    date_1 = date(2018,11,10)
-    date_2 = date(2018,11,10)
-    while date_1 <= date_2:
-        tree_run.main(date=date_1)
-        date_1 += timedelta(days=1)
+    # date_1 = date(2018,11,2)
+    # date_2 = date(2018,11,1)
+    # while date_1 <= date_2:
+    #     tree_run.main(date=date_1)
+    #     date_1 += timedelta(days=1)
 
     # fpath = r'C:\Users\chunyang.xu\Google 云端硬盘\桌面备份\2018年9月28日-word_data\word_v1_retention.csv'
     # with open(fpath,'r',encoding='utf-8') as f:

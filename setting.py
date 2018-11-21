@@ -2,7 +2,6 @@ import sys
 sys.path.append('..')
 import Tree_setting as tsetting
 
-
 database = tsetting.database
 user = tsetting.user
 password = tsetting.password
@@ -15,8 +14,6 @@ random_state = int(tsetting.random_state)
 model_dir = tsetting.model_dir
 test_size = float(tsetting.test_size)
 columns = tsetting.columns
-
-
 
 
 if __name__ == '__main__':
