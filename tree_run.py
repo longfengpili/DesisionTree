@@ -226,10 +226,10 @@ class TreeRun(DecisionTreeClasser,db_redshift):
 
 
 if __name__ == '__main__':
+    from treeargparse import input_date
 
     tree_run = TreeRun()
-    date_1 = date(2018,11,2)
-    tree_run.main(date=date_1)
+    tree_run.main(date=input_date)
 
     # date_1 = date(2018,11,2)
     # date_2 = date(2018,11,1)
