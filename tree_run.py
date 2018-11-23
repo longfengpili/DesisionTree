@@ -163,7 +163,7 @@ class TreeRun(DecisionTreeClasser,db_redshift):
 
         score,right_in_predictwrong,result_pre = self.predict_and_update(result)
 
-        max_start_date = datetime.date.today() - timedelta(days=self.days * 2 + 1)
+        max_start_date = datetime.date.today() - timedelta(days=self.days * 2 + 2)
         if date > max_start_date:
             run_log.info('【{}】未有完整数据，直接开始更新预测数据(【{}】之前的数据才完整)'.format(date,max_start_date))
             update_result = self.update_predict_info(result_pre) #更新预测数据
