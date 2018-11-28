@@ -85,7 +85,9 @@ class TreeRun(DecisionTreeClasser,db_redshift):
         return result_pre
 
     def update_predict_info(self,data_pre):
-        
+
+        run_log.info('开始更新预测数据')
+
         update_data = {}
         update_result = {}
         
@@ -112,7 +114,7 @@ class TreeRun(DecisionTreeClasser,db_redshift):
             rows = self.redshift_update(sql)
             run_log.info('更新key为【{}】,{}条记录'.format(i,rows))
 
-        run_log.info('更新{}条记录'.format(update_result))
+        run_log.info('更新预测数据结束，结果{}'.format(update_result))
 
         return update_result
         
@@ -131,26 +133,20 @@ class TreeRun(DecisionTreeClasser,db_redshift):
 
         return score,right_in_predictwrong
 
-    def predict_and_update(self,data):
-
+    def predict_and_update(self,data,score_action=True):
+        score = None
+        right_in_predictwrong = None
         run_log.info('开始预测数据')
         result_pre = self.predict_user_retention_status(data) #预测数据
         run_log.info('预测结束,预测数据数量为{}'.format(len(result_pre)))
         # print(result_pre[:5])
-        run_log.info('开始计算score、right_in_predictwrong')
-        score,right_in_predictwrong = self.model_predict_score(result_pre) #计算score、right_in_predictwrong
+        if score_action:
+            run_log.info('开始计算score、right_in_predictwrong')
+            score,right_in_predictwrong = self.model_predict_score(result_pre) #计算score、right_in_predictwrong
 
         return score,right_in_predictwrong,result_pre
 
-
-    def main(self,date=None):
-        '''
-        1、计算前14日的数据
-        2、计算分数，如果分数超过阀值，则根据前2个月数据重跑模型
-        '''
-        if date == None:
-            date = datetime.date.today()
-            date = date - timedelta(days=self.days * 2 + 1)
+    def update_data_base(self,date):
 
         with open('./sqls/retention.sql','r',encoding='utf-8') as f:
             sql = f.read()
@@ -161,65 +157,81 @@ class TreeRun(DecisionTreeClasser,db_redshift):
         rows,result = self.update_retention_data(sql,date) #更新数据
         run_log.info('更新数据结束，更新{}条数据'.format(rows))
 
-        score,right_in_predictwrong,result_pre = self.predict_and_update(result)
+        return rows,result
 
-        max_start_date = datetime.date.today() - timedelta(days=self.days * 2 + 2)
-        if date > max_start_date:
-            run_log.info('【{}】未有完整数据，直接开始更新预测数据(【{}】之前的数据才完整)'.format(date,max_start_date))
-            update_result = self.update_predict_info(result_pre) #更新预测数据
-            run_log.info('更新预测数据结束，结果{}'.format(update_result))
-        
-        elif score >= 0.8 and right_in_predictwrong <= 0.2:
-            run_log.info('现有模型符合条件，{}的预测结果：score为{},right_in_predictwrong为{}'.format(date,score,right_in_predictwrong))
-            run_log.info('开始更新预测数据')
-            update_result = self.update_predict_info(result_pre) #更新预测数据
-            run_log.info('更新预测数据结束，结果{}'.format(update_result))
 
-        else: #重构模型
-            run_log.info('重构模型，使用前模型，{}的预测结果score为{},right_in_predictwrong为{}'.format(date,score,right_in_predictwrong))
-            interval = 56
-            start_date = date - timedelta(days=interval)
-            end_date = date - timedelta(days=1)
-            run_log.info('重构模型，使用【{}】-【{}】的数据重构模型'.format(start_date,end_date))
-            sql = '''
-                select *
-                from report_word.user_info_before7_after7
-                where install_date >= '{}' and install_date <= '{}'
-                and app_name = '{}' and puzzle_language ='{}'
-                ;
-            '''.format(start_date,end_date,self.app_name,self.puzzle_language)
 
-            rows,sql_result = self.redshift_select(sql)
-            result_for_fit = self.modify_data(sql_result)
+    def main(self,date):
+        '''
+        1、计算前14日的数据
+        2、计算分数，如果分数超过阀值，则根据前2个月数据重跑模型
+        '''
+        today = datetime.date.today()
+        non_update_data_min_date = today - timedelta(days=self.days)
+        non_score_min_date = today - timedelta(days=self.days * 2)
 
-            run_log.info('重构模型，原始记录{}条,去掉异常数据，使用{}条训练模型'.format(rows,len(result_for_fit)))
+        if date >= non_update_data_min_date:
+            days = (today - date).days - 1
+            run_log.info('【{}】未有完整数据，仅有{}天数据，不进行更新及预测'.format(date,days))
 
-            x_column = ['level_max','load_days', 'challenge_gids','challenge_games', 'coin_after', 'enjoy_status_m', 'iap_status_m']
-            x = result_for_fit.loc[:,x_column].values
-            y = result_for_fit.loc[:,'retention_status_m'].values
+        elif date >= non_score_min_date:
+            days = (today - date).days - 1
+            run_log.info('【{}】未有完整数据，仅有{}天数据，仅进行更新预测，不计算准确率'.format(date,days))
+            
+            _,result = self.update_data_base(date)
+            _,_,result_pre = self.predict_and_update(result,score_action=None)
+            self.update_predict_info(result_pre) #更新预测数据
 
-            x_train,x_test,y_train,y_test = self.split_data(x,y)
-
-            tree = DecisionTreeClasser()
-            param_grid = {'max_depth': np.arange(6,8),
-                        'max_leaf_nodes': np.arange(120,170,10),
-                        'min_samples_split': np.arange(0.01,0.1,0.02)
-                        }
-            _,best_params = tree.grid_search_cv(x_train,y_train,param_grid,scoring='roc_auc') #调参
-            fit_result = self.desision_fit(best_params,x_train,y_train,x_test,y_test) #测试
-            run_log.info('重构模型，新模型【result】\n{}'.format(fit_result))
-
-            model_enddate = end_date.strftime('%Y-%m-%d')
-            model_name = '{}({})'.format(model_enddate,interval)
-            tree.save_best_model(model_name,best_params,x_train,y_train,feature_names=x_column)   #记录model
-
+        else:
+            _,result = self.update_data_base(date)
             score,right_in_predictwrong,result_pre = self.predict_and_update(result)
-            run_log.info('重构模型后，{}的结果：score为{},right_in_predictwrong为{}'.format(date,score,right_in_predictwrong))
-            run_log.info('开始更新预测数据')
-            update_result = self.update_predict_info(result_pre) #更新预测数据
-            run_log.info('更新预测数据结束，结果{}'.format(update_result))
 
-        return score,right_in_predictwrong
+            if score >= 0.8 and right_in_predictwrong <= 0.2:
+                run_log.info('现有模型符合条件，{}的预测结果：score为{},right_in_predictwrong为{}'.format(date,score,right_in_predictwrong))
+                self.update_predict_info(result_pre) #更新预测数据
+
+            else: #重构模型
+                run_log.info('重构模型，使用前模型，{}的预测结果score为{},right_in_predictwrong为{}'.format(date,score,right_in_predictwrong))
+                interval = 56
+                start_date = date - timedelta(days=interval)
+                end_date = date - timedelta(days=1)
+                run_log.info('重构模型，使用【{}】-【{}】的数据重构模型'.format(start_date,end_date))
+                sql = '''
+                    select *
+                    from report_word.user_info_before7_after7
+                    where install_date >= '{}' and install_date <= '{}'
+                    and app_name = '{}' and puzzle_language ='{}'
+                    ;
+                '''.format(start_date,end_date,self.app_name,self.puzzle_language)
+
+                rows,sql_result = self.redshift_select(sql)
+                result_for_fit = self.modify_data(sql_result)
+
+                run_log.info('重构模型，原始记录{}条,去掉异常数据，使用{}条训练模型'.format(rows,len(result_for_fit)))
+
+                x_column = ['level_max','load_days', 'challenge_gids','challenge_games', 'coin_after', 'enjoy_status_m', 'iap_status_m']
+                x = result_for_fit.loc[:,x_column].values
+                y = result_for_fit.loc[:,'retention_status_m'].values
+
+                x_train,x_test,y_train,y_test = self.split_data(x,y)
+
+                tree = DecisionTreeClasser()
+                param_grid = {'max_depth': np.arange(4,12),
+                            'max_leaf_nodes': np.arange(80,160,10),
+                            # 'min_samples_split': np.arange(0.001,0.02,0.002)
+                            }
+                _,best_params = tree.grid_search_cv(x_train,y_train,param_grid,scoring='roc_auc') #调参
+                fit_result = self.desision_fit(best_params,x_train,y_train,x_test,y_test) #测试
+                run_log.info('重构模型，新模型【result】\n{}'.format(fit_result))
+
+                model_enddate = end_date.strftime('%Y-%m-%d')
+                model_name = '{}({})'.format(model_enddate,interval)
+                tree.save_best_model(model_name,best_params,x_train,y_train,feature_names=x_column)   #记录model
+
+                score,right_in_predictwrong,result_pre = self.predict_and_update(result)
+                run_log.info('重构模型后，{}的结果：score为{},right_in_predictwrong为{}'.format(date,score,right_in_predictwrong))
+                self.update_predict_info(result_pre) #更新预测数据
+
 
 
 
